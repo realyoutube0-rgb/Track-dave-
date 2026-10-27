@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dave's History</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f0f2f5;
+      color: #222;
+    }
+    header {
+      background: #1a73e8;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    a.nav {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 6px 12px;
+      border: 1px solid white;
+      border-radius: 6px;
+    }
+    .container {
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .stop {
+      background: white;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .stop h3 { margin: 0 0 6px; }
+    .time { color: #555; font-size: 0.95rem; }
+    .past { border-left: 4px solid #188038; }
+    .current { border-left: 4px solid #d93025; }
+    .future { border-left: 4px solid #ccc; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dave's History</h1>
+    <a class="nav" href="index.html">Back to Map</a>
+  </header>
+  <div class="container" id="list"></div>
+
+  <script>
+    const schedule = [
+      {
+        name: "Daves house ",
+        lat: 40.1025,
+        lng: -74.2250,
+        arrive: "00:00",
+        leave: "08:00"
+      },
+      {
+        name: "Jackson Township",
+        lat: 40.0919,
+        lng: -74.3587,
+        arrive: "08:30",
+        leave: "11:30"
+      },
+      {
+        name: "Toms River",
+        lat: 39.9537,
+        lng: -74.1979,
+        arrive: "12:15",
+        leave: "15:30"
+      },
+      {
+        name: "minyan",
+        lat: 40.2497,
+        lng: -73.9975,
+        arrive: "16:30",
+        leave: "19:00"
+      },
+      {
+        name: "Home (Lakewood)",
+        lat: 40.1025,
+        lng: -74.2250,
+        arrive: "19:45",
+        leave: "23:59"
+      }
+    ];
+
+    function timeToMinutes(timeStr) {
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    const list = document.getElementById('list');
+    schedule.forEach(stop => {
+      const arrive = timeToMinutes(stop.arrive);
+      const leave = timeToMinutes(stop.leave);
+      let status = 'future';
+      let statusText = 'Upcoming';
+
+      if (currentMins >= leave) {
+        status = 'past';
+        statusText = 'Was here';
+      } else if (currentMins >= arrive && currentMins < leave) {
+        status = 'current';
+        statusText = 'Here right now';
+      }
+
+      const div = document.createElement('div');
+      div.className = 'stop ' + status;
+      div.innerHTML = `
+        <h3>${stop.name}</h3>
+        <div class="time">Arrived: ${stop.arrive} &nbsp; Left: ${stop.leave}</div>
+        <div class="time">${statusText}</div>
+      `;
+      list.appendChild(div);
+    });
+  </script>
+</body>
+</html>

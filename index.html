@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where is Dave?</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f0f2f5;
+      color: #222;
+    }
+    header {
+      background: #1a73e8;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    a.nav {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 6px 12px;
+      border: 1px solid white;
+      border-radius: 6px;
+    }
+    #map { 
+      height: calc(100vh - 52px); 
+      width: 100%; 
+      position: relative; 
+    }
+    #recenterBtn {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: white;
+      color: black;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 24px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    #recenterBtn:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Where is Dave?</h1>
+    <a class="nav" href="history.html">Daves track records</a>
+  </header>
+  <div id="map">
+    <button id="recenterBtn">Dave's here</button>
+  </div>
+
+  <script>
+const places = {
+  home:        { name: "Home (outskirts of Lakewood)", lat: 40.1150, lng: -74.2400 },
+  tartars:     { name: "Tartars", lat: 40.0810, lng: -74.2110 },
+  gym:         { name: "The Lakewood Gym", lat: 40.1082, lng: -74.2212 },
+  newHampshire:{ name: "1300 New Hampshire Ave", lat: 40.0423, lng: -74.1986 },
+  bowling:     { name: "Bowling Alley", lat: 40.0750, lng: -74.1850 },
+  minyan:      { name: "Minyan (145 Ocean Ave)", lat: 40.0900, lng: -74.2000 },
+  lake:        { name: "Lakewood Lake (Shenandoah)", lat: 40.0875, lng: -74.1919 },
+  wawa:        { name: "Wawa", lat: 40.0523, lng: -74.1763 },
+  seven11:     { name: "7-Eleven", lat: 40.0900, lng: -74.2100 },
+  cafe1:       { name: "Cafe (Main St)", lat: 40.0950, lng: -74.2150 },
+  cafe2:       { name: "Cafe (Madison Ave)", lat: 40.1000, lng: -74.2180 },
+  cafe3:       { name: "Cafe (Route 9)", lat: 40.0850, lng: -74.2050 },
+  dinner1:     { name: "Dinner Spot A", lat: 40.0920, lng: -74.2080 },
+  dinner2:     { name: "Dinner Spot B", lat: 40.0880, lng: -74.2120 },
+  dinner3:     { name: "Dinner Spot C", lat: 40.0970, lng: -74.2000 }
+};
+
+function getTodaySchedule() {
+  const day = new Date().getDay();
+  const cafeMorning = [places.cafe1, places.cafe2, places.cafe3, places.cafe1, places.cafe2, places.cafe3, places.cafe1][day];
+  const cafeLunch   = [places.cafe2, places.cafe3, places.cafe1, places.cafe2, places.cafe3, places.cafe1, places.cafe2][day];
+  const dinner      = [places.dinner1, places.dinner2, places.dinner3, places.dinner1, places.dinner2, places.dinner3, places.dinner1][day];
+
+  return [
+    { ...places.home,        arrive: "05:32", leave: "07:08" },
+    { ...cafeMorning,        arrive: "07:14", leave: "07:52" },
+    { ...places.tartars,     arrive: "08:06", leave: "08:47" },
+    { ...places.gym,         arrive: "09:03", leave: "11:48" },
+    { ...cafeLunch,          arrive: "12:07", leave: "12:41" },
+    { ...places.newHampshire,arrive: "13:12", leave: "13:48" },
+    { ...places.bowling,     arrive: "14:05", leave: "15:38" },
+    { name: "Store stop", lat: 40.0930, lng: -74.2140, arrive: "15:51", leave: "16:04" },
+    { name: "House stop", lat: 40.1010, lng: -74.2250, arrive: "16:18", leave: "16:27" },
+    { name: "Store stop 2", lat: 40.0860, lng: -74.2080, arrive: "16:42", leave: "16:51" },
+    { ...dinner,             arrive: "17:09", leave: "18:46" },
+    { ...places.minyan,      arrive: "19:04", leave: "19:38" },
+    { ...places.lake,        arrive: "00:28", leave: "00:57" },
+    { ...places.seven11,     arrive: "01:03", leave: "01:28" },
+    { ...places.wawa,        arrive: "01:35", leave: "02:02" },
+    { ...places.lake,        arrive: "02:09", leave: "02:36" },
+    { ...places.seven11,     arrive: "02:43", leave: "03:08" },
+    { ...places.wawa,        arrive: "03:15", leave: "03:41" },
+    { ...places.lake,        arrive: "03:48", leave: "04:14" },
+    { ...places.seven11,     arrive: "04:21", leave: "04:46" },
+    { ...places.wawa,        arrive: "04:53", leave: "05:18" },
+    { ...places.home,        arrive: "05:32", leave: "23:59" }
+  ];
+}
+
+const schedule = getTodaySchedule();
+
+async function loadRoutes() {
+  for (let i = 0; i < schedule.length - 1; i++) {
+    const from = schedule[i];
+    const to = schedule[i + 1];
+    const url = `https://router.project-osrm.org/route/v1/driving/\( {from.lng}, \){from.lat};\( {to.lng}, \){to.lat}?overview=full&geometries=geojson`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.routes && data.routes[0] && data.routes[0].geometry) {
+        from.route = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      }
+    } catch (e) {}
+  }
+}
+
+function timeToMinutes(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function interpolateAlongRoute(route, t) {
+  if (!route || route.length < 2) return null;
+  const total = route.length - 1;
+  const index = t * total;
+  const i = Math.floor(index);
+  const frac = index - i;
+  if (i >= total) return route[route.length - 1];
+  const a = route[i];
+  const b = route[i + 1];
+  return [a[0] + (b[0] - a[0]) * frac, a[1] + (b[1] - a[1]) * frac];
+}
+
+function interpolate(lat1, lng1, lat2, lng2, t) {
+  return [lat1 + (lat2 - lat1) * t, lng1 + (lng2 - lng1) * t];
+}
+
+let speedUp = false;
+let speedStartReal = null;
+let speedStartVirtual = null;
+
+function getCurrentMinutes() {
+  if (!speedUp) {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  } else {
+    const realElapsedMin = (Date.now() - speedStartReal) / 60000;
+    const virtualMins = speedStartVirtual + realElapsedMin * 60;
+    return virtualMins % (24 * 60);
+  }
+}
+
+function getCurrentPosition() {
+  const currentMins = getCurrentMinutes();
+
+  const segments = [];
+  for (let i = 0; i < schedule.length; i++) {
+    const stop = schedule[i];
+    const arrive = timeToMinutes(stop.arrive);
+    const leave = timeToMinutes(stop.leave);
+
+    segments.push({
+      type: 'stop',
+      name: stop.name,
+      lat: stop.lat,
+      lng: stop.lng,
+      start: arrive,
+      end: leave
+    });
+
+    if (i < schedule.length - 1) {
+      const next = schedule[i + 1];
+      const travelStart = leave;
+      const travelEnd = timeToMinutes(next.arrive);
+      if (travelEnd > travelStart) {
+        segments.push({
+          type: 'travel',
+          from: stop.name,
+          to: next.name,
+          lat1: stop.lat,
+          lng1: stop.lng,
+          lat2: next.lat,
+          lng2: next.lng,
+          route: stop.route,
+          start: travelStart,
+          end: travelEnd
+        });
+      }
+    }
+  }
+
+  let active = null;
+  for (const seg of segments) {
+    if (currentMins >= seg.start && currentMins < seg.end) {
+      active = seg;
+      break;
+    }
+  }
+  if (!active) active = segments[segments.length - 1] || segments[0];
+
+  let lat, lng;
+  if (active.type === 'stop') {
+    lat = active.lat;
+    lng = active.lng;
+  } else {
+    const duration = active.end - active.start;
+    const elapsed = currentMins - active.start;
+    const t = Math.max(0, Math.min(1, elapsed / duration));
+    const routePos = interpolateAlongRoute(active.route, t);
+    if (routePos) {
+      [lat, lng] = routePos;
+    } else {
+      [lat, lng] = interpolate(active.lat1, active.lng1, active.lat2, active.lng2, t);
+    }
+  }
+  return { lat, lng };
+}
+
+const map = L.map('map', { 
+  zoomControl: false,
+  zoomAnimation: true,
+  markerZoomAnimation: true,
+  inertia: true,
+  inertiaDeceleration: 3000,
+  inertiaMaxSpeed: 1500
+}).setView([40.12, -74.18], 10);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap',
+  maxZoom: 18,
+  updateWhenIdle: false,
+  updateWhenZooming: false,
+  keepBuffer: 4
+}).addTo(map);
+
+const marker = L.marker([40.12, -74.18]).addTo(map);
+marker.bindPopup("Dave").openPopup();
+
+const bounds = [];
+schedule.forEach(stop => bounds.push([stop.lat, stop.lng]));
+if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
+
+function update() {
+  const pos = getCurrentPosition();
+  marker.setLatLng([pos.lat, pos.lng]);
+  const clock = document.getElementById('timeClock');
+  if (clock && speedUp) {
+    const real = new Date();
+    const realStr = real.toLocaleTimeString();
+    const virtMins = getCurrentMinutes();
+    const vh = Math.floor(virtMins / 60) % 24;
+    const vm = Math.floor(virtMins % 60);
+    const virtStr = `\( {String(vh).padStart(2,'0')}: \){String(vm).padStart(2,'0')}`;
+    clock.innerHTML = `Real: ${realStr}<br>Website: ${virtStr}`;
+  }
+}
+
+document.getElementById('recenterBtn').addEventListener('click', function() {
+  const currentPos = marker.getLatLng();
+  map.flyTo(currentPos, 15, { animate: true, duration: 1.5 });
+});
+
+// Admin button
+document.body.insertAdjacentHTML('beforeend', '<button id="adminBtn" style="position:fixed; bottom:10px; right:10px; font-size:14px; opacity:0.7; background:#eee; border:1px solid #ccc; padding:4px 8px; border-radius:4px; cursor:pointer; color:#333; z-index:9999;">admin</button>');
+document.body.insertAdjacentHTML('beforeend', '<div id="timeClock" style="display:none; position:fixed; bottom:50px; right:10px; background:rgba(0,0,0,0.8); color:white; padding:8px 12px; border-radius:6px; font-size:13px; z-index:9999; font-family:monospace;"></div>');
+document.getElementById('adminBtn').addEventListener('click', function() {
+  const pass = prompt("Password:");
+  if (pass === "tRack.dave9") {
+    const on = confirm("Turn on 24-hour day in 24 minutes?");
+    const clock = document.getElementById('timeClock');
+    if (on) {
+      speedUp = true;
+      speedStartReal = Date.now();
+      speedStartVirtual = getCurrentMinutes();
+      clock.style.display = 'block';
+      alert("Speed mode ON");
+    } else {
+      speedUp = false;
+      clock.style.display = 'none';
+      alert("Speed mode OFF");
+    }
+  } else if (pass !== null) {
+    alert("Wrong password");
+  }
+});
+
+loadRoutes().then(() => {
+  update();
+  setInterval(update, 1000);
+});
+  </script>
+</body>
+</html>

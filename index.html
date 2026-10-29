@@ -11,305 +11,674 @@
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #f0f2f5;
-      color: #222;
+      background: #eef1f6;
+      color: #1b2a41;
     }
+
+    /* ---------- Title ---------- */
     header {
       background: #1a73e8;
       color: white;
-      padding: 12px 20px;
+      text-align: center;
+      padding: 28px 16px 24px;
+      position: sticky;
+top: 0;
+z-index: 2000;
+    }
+    header h1 {
+      margin: 0;
+      font-size: clamp(2.6rem, 11vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+
+    main { max-width: 980px; margin: 0 auto; padding: 18px 14px 60px; }
+
+    /* ---------- Status ---------- */
+    .status {
+      background: white;
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-    header h1 { margin: 0; font-size: 1.4rem; }
-    a.nav {
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      padding: 6px 12px;
-      border: 1px solid white;
-      border-radius: 6px;
+    #statusMain { font-size: 1.35rem; font-weight: 700; }
+    #statusSub { font-size: 0.9rem; color: #5b6b82; margin-top: 2px; }
+    #clockChip {
+      font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums;
+      background: #eef4ff; color: #1a73e8; padding: 6px 14px; border-radius: 10px;
     }
-    #map { 
-      height: calc(100vh - 52px); 
-      width: 100%; 
-      position: relative; 
-    }
-    #recenterBtn {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      z-index: 1000;
+
+    /* ---------- Map window ---------- */
+    .window {
       background: white;
-      color: black;
-      border: none;
-      padding: 12px 18px;
-      border-radius: 24px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(20, 40, 80, 0.22);
+      border: 1px solid #c9d3e3;
+    }
+    .titlebar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px; background: #dfe6f2; font-size: 0.85rem; font-weight: 600; color: #3a4a63;
+    }
+    .titlebar i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+    .titlebar i:nth-child(1) { background: #ff5f57; }
+    .titlebar i:nth-child(2) { background: #febc2e; }
+    .titlebar i:nth-child(3) { background: #28c840; }
+    .titlebar span { margin-left: 6px; }
+    #mapWrap { position: relative; height: clamp(340px, 62vh, 540px); }
+    #map { position: absolute; inset: 0; background: #e8e4d8; }
+    /* Muted look so it doesn't read as Google Maps */
+    .leaflet-tile-pane { filter: saturate(0.6) sepia(0.2) hue-rotate(-8deg) brightness(1.03); }
+
+    #recenterBtn {
+      position: absolute; bottom: 16px; left: 16px; z-index: 1000;
+      background: white; color: black; border: none; padding: 11px 18px;
+      border-radius: 24px; font-size: 1rem; font-weight: 700; cursor: pointer;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    #recenterBtn:hover {
-      background: #f0f0f0;
+    #recenterBtn:hover { background: #f0f0f0; }
+    #recenterBtn.attention { background: #1a73e8; color: white; }
+
+    /* Shown on phones when someone swipes the map with one finger */
+    #touchHint {
+      position: absolute; inset: 0; z-index: 1100;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(20, 30, 50, 0.45); color: white;
+      font-size: 1.15rem; font-weight: 700; text-align: center; padding: 20px;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    #touchHint.show { opacity: 1; }
+
+    /* ---------- Place icons ---------- */
+    .pl { background: none; border: none; }
+    .pl-wrap { position: relative; width: 38px; height: 38px; }
+    .pl-dot {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: white; border: 2.5px solid #1a73e8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; line-height: 1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+    .pl-label {
+      position: absolute; top: 42px; left: 50%; transform: translateX(-50%);
+      white-space: nowrap; font-size: 11px; font-weight: 700; line-height: 1.1;
+      color: #1b2a41; background: rgba(255,255,255,0.94);
+      padding: 2px 6px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .pl.up .pl-label { top: auto; bottom: 42px; }
+    .pl.here .pl-dot { background: #fff3c4; border-color: #f29900; transform: scale(1.15); }
+    #map.zoomed-out .pl-label { display: none; }
+
+    /* ---------- Dave icon ---------- */
+    .dave { background: none; border: none; }
+    .dave-wrap { position: relative; width: 46px; height: 46px; }
+    .dave-pulse {
+      position: absolute; inset: -6px; border-radius: 50%;
+      background: rgba(229, 57, 53, 0.35);
+      animation: pulse 1.6s ease-out infinite;
+    }
+    .dave-dot {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: #e53935; border: 3px solid white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    .dave-tag {
+      position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+      background: #e53935; color: white; font-size: 12px; font-weight: 800;
+      padding: 2px 8px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.8); opacity: 0.9; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .dave-pulse { animation: none; } }
+
+    /* ---------- Track record ---------- */
+    .record {
+      margin-top: 20px; background: white; border-radius: 14px;
+      padding: 16px 18px 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+    .record h2 { margin: 0 0 2px; font-size: 1.5rem; }
+    .record .sub { margin: 0 0 10px; color: #5b6b82; font-size: 0.9rem; }
+    #recordList { list-style: none; margin: 0; padding: 0; }
+    #recordList li {
+      display: flex; gap: 14px; align-items: baseline;
+      padding: 10px 8px; border-top: 1px solid #e6ebf3; cursor: pointer;
+      border-radius: 8px;
+    }
+    #recordList li:first-child { border-top: none; }
+    #recordList li:hover { background: #f5f8fd; }
+    .rt-time { flex: 0 0 11.5em; font-variant-numeric: tabular-nums; color: #5b6b82; font-size: 0.92rem; }
+    .rt-place { font-weight: 600; }
+    #recordList li.done { opacity: 0.5; }
+    #recordList li.now { background: #fff3c4; opacity: 1; }
+    #recordList li.now .rt-time { color: #7a5200; font-weight: 700; }
+    @media (max-width: 520px) {
+      #recordList li { flex-direction: column; gap: 2px; }
+      .rt-time { flex: none; }
+    }
+
+    #adminBtn {
+      position: fixed; bottom: 10px; right: 10px; z-index: 9999;
+      font-size: 14px; opacity: 0.6; background: #eee; color: #333;
+      border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px; cursor: pointer;
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Where is Dave?</h1>
-    <a class="nav" href="history.html">Daves track records</a>
   </header>
-  <div id="map">
-    <button id="recenterBtn">Dave's here</button>
-  </div>
+
+  <main>
+    <section class="status">
+      <div>
+        <div id="statusMain">Finding Dave...</div>
+        <div id="statusSub"></div>
+      </div>
+      <div id="clockChip">--:--</div>
+    </section>
+
+    <div class="window">
+      <div class="titlebar"><i></i><i></i><i></i><span>Dave Tracker</span></div>
+      <div id="mapWrap">
+        <div id="map"></div>
+        <button id="recenterBtn">Dave's here</button>
+        <div id="touchHint">Use two fingers to move the map</div>
+      </div>
+    </div>
+
+    <section class="record">
+      <h2>Dave's track record</h2>
+      <p class="sub" id="recordSub"></p>
+      <ol id="recordList"></ol>
+    </section>
+  </main>
+
+  <button id="adminBtn">admin</button>
 
   <script>
-const places = {
-  home:        { name: "Home (outskirts of Lakewood)", lat: 40.1150, lng: -74.2400 },
-  tartars:     { name: "Tartars", lat: 40.0810, lng: -74.2110 },
-  gym:         { name: "The Lakewood Gym", lat: 40.1082, lng: -74.2212 },
-  newHampshire:{ name: "1300 New Hampshire Ave", lat: 40.0423, lng: -74.1986 },
-  bowling:     { name: "Bowling Alley", lat: 40.0750, lng: -74.1850 },
-  minyan:      { name: "Minyan (145 Ocean Ave)", lat: 40.0900, lng: -74.2000 },
-  lake:        { name: "Lakewood Lake (Shenandoah)", lat: 40.0875, lng: -74.1919 },
-  wawa:        { name: "Wawa", lat: 40.0523, lng: -74.1763 },
-  seven11:     { name: "7-Eleven", lat: 40.0900, lng: -74.2100 },
-  cafe1:       { name: "Cafe (Main St)", lat: 40.0950, lng: -74.2150 },
-  cafe2:       { name: "Cafe (Madison Ave)", lat: 40.1000, lng: -74.2180 },
-  cafe3:       { name: "Cafe (Route 9)", lat: 40.0850, lng: -74.2050 },
-  dinner1:     { name: "Dinner Spot A", lat: 40.0920, lng: -74.2080 },
-  dinner2:     { name: "Dinner Spot B", lat: 40.0880, lng: -74.2120 },
-  dinner3:     { name: "Dinner Spot C", lat: 40.0970, lng: -74.2000 }
-};
+    // ============ SETTINGS ============
+    const FAST_SPEED = 360;           // virtual minutes per real minute. 360 = a full day in 4 minutes
+    const START_ZOOM = 15;            // higher = more zoomed in (neighborhood level)
 
-function getTodaySchedule() {
-  const day = new Date().getDay();
-  const cafeMorning = [places.cafe1, places.cafe2, places.cafe3, places.cafe1, places.cafe2, places.cafe3, places.cafe1][day];
-  const cafeLunch   = [places.cafe2, places.cafe3, places.cafe1, places.cafe2, places.cafe3, places.cafe1, places.cafe2][day];
-  const dinner      = [places.dinner1, places.dinner2, places.dinner3, places.dinner1, places.dinner2, places.dinner3, places.dinner1][day];
+    // Opening tour: for the first minute or so Dave hops between places no matter the time
+    const INTRO_TRAVEL_SECONDS = 5;   // how long each drive takes
+    const INTRO_PAUSE_SECONDS = 1.5;  // how long he stays at each stop
+    // The tour plays schedule drives 10 to 18 (home > cafe > Tartars > gym > lunch > bowling > Evergreen > house stop > Gourmet Glatt > dinner)
+    const INTRO_FIRST_DRIVE = 10;
+    const INTRO_LAST_DRIVE = 18;
 
-  return [
-    { ...places.home,        arrive: "05:32", leave: "07:08" },
-    { ...cafeMorning,        arrive: "07:14", leave: "07:52" },
-    { ...places.tartars,     arrive: "08:06", leave: "08:47" },
-    { ...places.gym,         arrive: "09:03", leave: "11:48" },
-    { ...cafeLunch,          arrive: "12:07", leave: "12:41" },
-    { ...places.newHampshire,arrive: "13:12", leave: "13:48" },
-    { ...places.bowling,     arrive: "14:05", leave: "15:38" },
-    { name: "Store stop", lat: 40.0930, lng: -74.2140, arrive: "15:51", leave: "16:04" },
-    { name: "House stop", lat: 40.1010, lng: -74.2250, arrive: "16:18", leave: "16:27" },
-    { name: "Store stop 2", lat: 40.0860, lng: -74.2080, arrive: "16:42", leave: "16:51" },
-    { ...dinner,             arrive: "17:09", leave: "18:46" },
-    { ...places.minyan,      arrive: "19:04", leave: "19:38" },
-    { ...places.lake,        arrive: "00:28", leave: "00:57" },
-    { ...places.seven11,     arrive: "01:03", leave: "01:28" },
-    { ...places.wawa,        arrive: "01:35", leave: "02:02" },
-    { ...places.lake,        arrive: "02:09", leave: "02:36" },
-    { ...places.seven11,     arrive: "02:43", leave: "03:08" },
-    { ...places.wawa,        arrive: "03:15", leave: "03:41" },
-    { ...places.lake,        arrive: "03:48", leave: "04:14" },
-    { ...places.seven11,     arrive: "04:21", leave: "04:46" },
-    { ...places.wawa,        arrive: "04:53", leave: "05:18" },
-    { ...places.home,        arrive: "05:32", leave: "23:59" }
-  ];
-}
+    // ============ PLACES ============
+    const places = {
+      home:        { name: "Home (121 Van Buren Ave)", icon: "🏠", lat: 40.0950, lng: -74.2495 },
+      tartars:     { name: "Tartars", icon: "🍴", lat: 40.0815, lng: -74.2115 },
+      gym:         { name: "The Lakewood Gym", icon: "🏋️", lat: 40.1081, lng: -74.2212 },
+      bowling:     { name: "Finigin Lanes", icon: "🎳", lat: 40.0760, lng: -74.1850 },
+      minyan:      { name: "Minyan (145 Ocean Ave)", icon: "🕍", lat: 40.0900, lng: -74.2000 },
+      lake:        { name: "Lakewood Lake", icon: "🦆", lat: 40.089071, lng: -74.216998 },
+      wawa:        { name: "Wawa", icon: "⛽", lat: 40.0833, lng: -74.2669 },
+      seven11:     { name: "7-Eleven", icon: "🏪", lat: 40.0833, lng: -74.2158 },
 
-const schedule = getTodaySchedule();
+      bun:         { name: "Bun", icon: "🍔", lat: 40.0535, lng: -74.2206 },
+      kipshuto:    { name: "Kipshuto", icon: "🍴", lat: 40.0920, lng: -74.2150 },
+      smashHouse:  { name: "Smash house", icon: "🍔", lat: 40.0400, lng: -74.2200 },
+      southside:   { name: "Southside", icon: "🍖", lat: 40.0850, lng: -74.2050 },
+      lipas:       { name: "Lipas", icon: "🥙", lat: 40.1001, lng: -74.2178 },
+      pitaHut:     { name: "Pita Hut", icon: "🥙", lat: 40.0719, lng: -74.2171 },
 
-async function loadRoutes() {
-  for (let i = 0; i < schedule.length - 1; i++) {
-    const from = schedule[i];
-    const to = schedule[i + 1];
-    const url = `https://router.project-osrm.org/route/v1/driving/\( {from.lng}, \){from.lat};\( {to.lng}, \){to.lat}?overview=full&geometries=geojson`;
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.routes && data.routes[0] && data.routes[0].geometry) {
-        from.route = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      bagelNosh:   { name: "Bagel Nosh", icon: "🥯", lat: 40.0940, lng: -74.2150 },
+      fourCorners: { name: "4 corners", icon: "☕", lat: 40.0800, lng: -74.2200 },
+      panini:      { name: "Panini Cafe", icon: "🥪", lat: 40.0758, lng: -74.2165 },
+      villagePizza:{ name: "Village Pizza", icon: "🍕", lat: 40.0719, lng: -74.2171 },
+      j2South:     { name: "J2 Pizza South", icon: "🍕", lat: 40.0637, lng: -74.2197 },
+      j2North:     { name: "J2 Pizza North", icon: "🍕", lat: 40.1081, lng: -74.2212 },
+      hotBagels:   { name: "Hot bagels", icon: "🥯", lat: 40.0719, lng: -74.2171 },
+
+      evergreen:   { name: "Evergreen", icon: "🛒", lat: 40.0631, lng: -74.2184 },
+      gourmetGlatt:{ name: "Gourmet Glatt", icon: "🛒", lat: 40.1084, lng: -74.2217 },
+      houseStop:   { name: "House stop", icon: "🏘️", lat: 40.0740, lng: -74.2155 }
+    };
+
+    // ============ TIME HELPERS ============
+    // Lakewood, NJ time, so everyone sees the same Dave
+    function nowInLakewood() {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York', weekday: 'short', hour: 'numeric',
+        minute: 'numeric', second: 'numeric', hourCycle: 'h23'
+      }).formatToParts(new Date());
+      const get = t => parts.find(p => p.type === t).value;
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      return {
+        day: days.indexOf(get('weekday')),
+        minutes: Number(get('hour')) * 60 + Number(get('minute')) + Number(get('second')) / 60
+      };
+    }
+
+    function timeToMinutes(str) {
+      const [h, m] = str.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    // Regular (12-hour) time
+    function fmt12(mins) {
+      const total = ((Math.floor(mins) % 1440) + 1440) % 1440;
+      const h = Math.floor(total / 60);
+      const m = total % 60;
+      return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM');
+    }
+
+    // ============ SCHEDULE (midnight to midnight, starts and ends at home) ============
+    function buildSchedule(day) {
+      const morningCafes = [places.bagelNosh, places.fourCorners, places.panini, places.villagePizza, places.j2South, places.j2North, places.hotBagels];
+      const lunchCafes   = [places.fourCorners, places.panini, places.bagelNosh, places.villagePizza, places.j2North, places.j2South, places.hotBagels];
+      const dinnerPlaces = [places.bun, places.kipshuto, places.smashHouse, places.southside, places.lipas, places.pitaHut, places.bun];
+
+      const list = [
+        { ...places.home,         arrive: "00:00", leave: "00:14" },
+        { ...places.lake,         arrive: "00:28", leave: "00:57" },
+        { ...places.seven11,      arrive: "01:03", leave: "01:28" },
+        { ...places.wawa,         arrive: "01:35", leave: "02:02" },
+        { ...places.lake,         arrive: "02:09", leave: "02:36" },
+        { ...places.seven11,      arrive: "02:43", leave: "03:08" },
+        { ...places.wawa,         arrive: "03:15", leave: "03:41" },
+        { ...places.lake,         arrive: "03:48", leave: "04:14" },
+        { ...places.seven11,      arrive: "04:21", leave: "04:46" },
+        { ...places.wawa,         arrive: "04:53", leave: "05:18" },
+        { ...places.home,         arrive: "05:32", leave: "07:08" },
+        { ...morningCafes[day],   arrive: "07:14", leave: "07:52" },
+        { ...places.tartars,      arrive: "08:06", leave: "08:47" },
+        { ...places.gym,          arrive: "09:03", leave: "11:48" },
+        { ...lunchCafes[day],     arrive: "12:07", leave: "12:41" },
+        { ...places.bowling,      arrive: "14:05", leave: "15:38" },
+        { ...places.evergreen,    arrive: "15:51", leave: "16:04" },
+        { ...places.houseStop,    arrive: "16:18", leave: "16:27" },
+        { ...places.gourmetGlatt, arrive: "16:42", leave: "16:51" },
+        { ...dinnerPlaces[day],   arrive: "17:09", leave: "18:46" },
+        { ...places.minyan,       arrive: "19:04", leave: "19:38" },
+        { ...places.home,         arrive: "19:52", leave: "24:00" }
+      ];
+      list.forEach(s => { s.a = timeToMinutes(s.arrive); s.l = timeToMinutes(s.leave); });
+      return list;
+    }
+
+    const today = nowInLakewood();
+    const schedule = buildSchedule(today.day);
+
+    // ============ ROADS ============
+    function routeKey() {
+      return "daveRoutes_v2_" + schedule.map(s => s.name).join("|");
+    }
+    function readSavedRoutes() {
+      try { const s = localStorage.getItem(routeKey()); if (s) return JSON.parse(s); } catch (e) {}
+      return null;
+    }
+    function saveRoutes(routes) {
+      try { localStorage.setItem(routeKey(), JSON.stringify(routes)); } catch (e) {}
+    }
+    async function fetchRoute(from, to) {
+      if (from.lat === to.lat && from.lng === to.lng) return null;
+      const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.routes && data.routes[0] && data.routes[0].geometry) {
+          return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        }
+      } catch (e) {}
+      return null;
+    }
+    async function loadRoutes() {
+      let routes = readSavedRoutes();
+      if (!routes || routes.length !== schedule.length - 1) {
+        routes = await Promise.all(
+          schedule.slice(0, -1).map((from, i) => fetchRoute(from, schedule[i + 1]))
+        );
+        const complete = routes.every((r, i) => r || (schedule[i].lat === schedule[i + 1].lat && schedule[i].lng === schedule[i + 1].lng));
+        if (complete) saveRoutes(routes);
       }
-    } catch (e) {}
-  }
-}
+      routes.forEach((r, i) => { if (r) schedule[i].route = r; });
+    }
 
-function timeToMinutes(timeStr) {
-  const [h, m] = timeStr.split(':').map(Number);
-  return h * 60 + m;
-}
+    // Position along a road by real distance
+    function interpolateAlongRoute(route, t) {
+      if (!route || route.length < 2) return null;
+      if (!route._lens) {
+        const dist = (a, b) => Math.hypot(b[0] - a[0], (b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180));
+        route._lens = [];
+        route._total = 0;
+        for (let i = 0; i < route.length - 1; i++) {
+          const d = dist(route[i], route[i + 1]);
+          route._lens.push(d);
+          route._total += d;
+        }
+      }
+      if (route._total === 0) return route[0];
+      let target = t * route._total;
+      for (let i = 0; i < route._lens.length; i++) {
+        if (target <= route._lens[i] || i === route._lens.length - 1) {
+          const f = route._lens[i] === 0 ? 0 : Math.min(1, target / route._lens[i]);
+          const a = route[i], b = route[i + 1];
+          return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+        }
+        target -= route._lens[i];
+      }
+      return route[route.length - 1];
+    }
+    function interpolate(lat1, lng1, lat2, lng2, t) {
+      return [lat1 + (lat2 - lat1) * t, lng1 + (lng2 - lng1) * t];
+    }
+    function positionOnDrive(from, to, t) {
+      return interpolateAlongRoute(from.route, t) || interpolate(from.lat, from.lng, to.lat, to.lng, t);
+    }
 
-function interpolateAlongRoute(route, t) {
-  if (!route || route.length < 2) return null;
-  const total = route.length - 1;
-  const index = t * total;
-  const i = Math.floor(index);
-  const frac = index - i;
-  if (i >= total) return route[route.length - 1];
-  const a = route[i];
-  const b = route[i + 1];
-  return [a[0] + (b[0] - a[0]) * frac, a[1] + (b[1] - a[1]) * frac];
-}
+    // ============ CLOCK (fast-forward by default, real time via admin) ============
+    let mode = 'fast';   // 'fast' or 'live'
+    let anchorReal = Date.now();
+    let anchorVirtual = today.minutes;
 
-function interpolate(lat1, lng1, lat2, lng2, t) {
-  return [lat1 + (lat2 - lat1) * t, lng1 + (lng2 - lng1) * t];
-}
+    function getCurrentMinutes() {
+      if (mode === 'live') return nowInLakewood().minutes;
+      const realElapsedMin = (Date.now() - anchorReal) / 60000;
+      return (anchorVirtual + realElapsedMin * FAST_SPEED) % 1440;
+    }
 
-let speedUp = false;
-let speedStartReal = null;
-let speedStartVirtual = null;
+    // ============ OPENING TOUR ============
+    // Drives that actually go somewhere (skips hops where both places share a spot)
+    const introDrives = [];
+    for (let i = INTRO_FIRST_DRIVE; i <= INTRO_LAST_DRIVE; i++) {
+      const a = schedule[i], b = schedule[i + 1];
+      if (a.lat !== b.lat || a.lng !== b.lng) introDrives.push(i);
+    }
+    const INTRO_HOP_MS = (INTRO_TRAVEL_SECONDS + INTRO_PAUSE_SECONDS) * 1000;
+    const INTRO_TRAVEL_MS = INTRO_TRAVEL_SECONDS * 1000;
+    const INTRO_TOTAL_MS = introDrives.length * INTRO_HOP_MS;
+    const introStartReal = Date.now();
+    let introActive = introDrives.length > 0;
+    let handoffPending = false;
 
-function getCurrentMinutes() {
-  if (!speedUp) {
-    const now = new Date();
-    return now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
-  } else {
-    const realElapsedMin = (Date.now() - speedStartReal) / 60000;
-    const virtualMins = speedStartVirtual + realElapsedMin * 60;
-    return virtualMins % (24 * 60);
-  }
-}
+    function endIntro() {
+      if (!introActive) return;
+      introActive = false;
+      // Back to the fast-forward schedule, continuing from the current time of day
+      anchorReal = Date.now();
+      anchorVirtual = nowInLakewood().minutes;
+      handoffPending = true;
+    }
 
-function getCurrentPosition() {
-  const currentMins = getCurrentMinutes();
+    function getIntroState() {
+      const elapsed = Date.now() - introStartReal;
+      if (elapsed >= INTRO_TOTAL_MS) { endIntro(); return null; }
+      const hop = Math.floor(elapsed / INTRO_HOP_MS);
+      const within = elapsed - hop * INTRO_HOP_MS;
+      const i = introDrives[hop];
+      const from = schedule[i], to = schedule[i + 1];
+      if (within < INTRO_TRAVEL_MS) {
+        const t = within / INTRO_TRAVEL_MS;
+        const p = positionOnDrive(from, to, t);
+        return { mode: 'travel', index: i, lat: p[0], lng: p[1], place: to, mins: from.l + t * (to.a - from.l) };
+      }
+      return { mode: 'stop', index: i + 1, lat: to.lat, lng: to.lng, place: to, mins: to.a };
+    }
 
-  const segments = [];
-  for (let i = 0; i < schedule.length; i++) {
-    const stop = schedule[i];
-    const arrive = timeToMinutes(stop.arrive);
-    const leave = timeToMinutes(stop.leave);
+    function getState() {
+      if (introActive) {
+        const intro = getIntroState();
+        if (intro) return intro;
+      }
+      const m = getCurrentMinutes();
+      for (let i = 0; i < schedule.length; i++) {
+        const s = schedule[i];
+        if (m >= s.a && m < s.l) {
+          return { mode: 'stop', index: i, lat: s.lat, lng: s.lng, place: s, mins: m };
+        }
+        if (i < schedule.length - 1) {
+          const n = schedule[i + 1];
+          if (m >= s.l && m < n.a) {
+            const t = (m - s.l) / (n.a - s.l);
+            const p = positionOnDrive(s, n, t);
+            return { mode: 'travel', index: i, lat: p[0], lng: p[1], place: n, mins: m };
+          }
+        }
+      }
+      const last = schedule[schedule.length - 1];
+      return { mode: 'stop', index: schedule.length - 1, lat: last.lat, lng: last.lng, place: last, mins: m };
+    }
 
-    segments.push({
-      type: 'stop',
-      name: stop.name,
-      lat: stop.lat,
-      lng: stop.lng,
-      start: arrive,
-      end: leave
+    // ============ MAP ============
+    const startState = getState();
+
+    const map = L.map('map', {
+      zoomControl: false,
+      attributionControl: false,   // credit removed as requested
+      scrollWheelZoom: false,      // mouse wheel scrolls the page, not the map
+      // On phones, one finger scrolls the page and two fingers move/zoom the map.
+      // On computers, click and drag still moves the map.
+      dragging: !L.Browser.mobile,
+      zoomAnimation: true,
+      markerZoomAnimation: true,
+      inertia: true,
+      inertiaDeceleration: 3000,
+      inertiaMaxSpeed: 1500,
+      minZoom: 13,
+      maxZoom: 17,
+      maxBounds: [[40.03, -74.29], [40.16, -74.14]]
+    }).setView([startState.lat, startState.lng], START_ZOOM);
+
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      updateWhenIdle: false,
+      updateWhenZooming: false,
+      keepBuffer: 4
+    }).addTo(map);
+
+    const mapEl = document.getElementById('map');
+    function updateZoomClass() { mapEl.classList.toggle('zoomed-out', map.getZoom() < 15); }
+    map.on('zoomend', updateZoomClass);
+    updateZoomClass();
+
+    // ---- Two-finger hint on phones ----
+    const touchHint = document.getElementById('touchHint');
+    let hintTimer = null;
+    mapEl.addEventListener('touchstart', e => {
+      if (e.touches.length > 1) setFollow(false);   // pinching or two-finger moving = the viewer is exploring
+    }, { passive: true });
+    mapEl.addEventListener('touchmove', e => {
+      if (e.touches.length === 1 && L.Browser.mobile) {
+        touchHint.classList.add('show');
+        clearTimeout(hintTimer);
+        hintTimer = setTimeout(() => touchHint.classList.remove('show'), 1200);
+      }
+    }, { passive: true });
+
+    // ---- Icons for every place Dave visits today ----
+    function shortName(n) { return n.split(' (')[0]; }
+    function placeKey(p) { return p.name + '|' + p.lat + '|' + p.lng; }
+
+    const uniquePlaces = [];
+    const seen = new Set();
+    schedule.forEach(s => {
+      const k = placeKey(s);
+      if (!seen.has(k)) { seen.add(k); uniquePlaces.push(s); }
     });
 
-    if (i < schedule.length - 1) {
-      const next = schedule[i + 1];
-      const travelStart = leave;
-      const travelEnd = timeToMinutes(next.arrive);
-      if (travelEnd > travelStart) {
-        segments.push({
-          type: 'travel',
-          from: stop.name,
-          to: next.name,
-          lat1: stop.lat,
-          lng1: stop.lng,
-          lat2: next.lat,
-          lng2: next.lng,
-          route: stop.route,
-          start: travelStart,
-          end: travelEnd
+    // Group places that sit almost on top of each other, then spread their icons apart
+    const clusters = [];
+    uniquePlaces.forEach(p => {
+      const c = clusters.find(c => Math.abs(c[0].lat - p.lat) < 0.0012 && Math.abs(c[0].lng - p.lng) < 0.0012);
+      if (c) c.push(p); else clusters.push([p]);
+    });
+
+    const placeEls = {};   // placeKey -> marker element
+    clusters.forEach(c => {
+      c.forEach((p, k) => {
+        const dx = (k - (c.length - 1) / 2) * 46;
+        const up = k % 2 === 1;
+        const icon = L.divIcon({
+          className: 'pl' + (up ? ' up' : ''),
+          html: `<div class="pl-wrap"><div class="pl-dot">${p.icon}</div><div class="pl-label">${shortName(p.name)}</div></div>`,
+          iconSize: [38, 38],
+          iconAnchor: [19 - dx, 19]
         });
+        const m = L.marker([p.lat, p.lng], { icon, zIndexOffset: 100, keyboard: false })
+          .bindPopup(`${p.icon} ${p.name}`)
+          .addTo(map);
+        placeEls[placeKey(p)] = m.getElement();
+      });
+    });
+
+    // ---- Dave ----
+    const daveIcon = L.divIcon({
+      className: 'dave',
+      html: '<div class="dave-wrap"><div class="dave-pulse"></div><div class="dave-dot"><img src="dave.jpg" alt="Dave" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"></div><div class="dave-tag">Dave</div></div>',
+      iconSize: [46, 46],
+      iconAnchor: [23, 23]
+    });
+    const marker = L.marker([startState.lat, startState.lng], { icon: daveIcon, zIndexOffset: 1000, interactive: false }).addTo(map);
+
+    // ============ TRACK RECORD LIST (below the map) ============
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    document.getElementById('recordSub').textContent = dayNames[today.day] + ". Tap a row to see the spot on the map.";
+
+    const listEl = document.getElementById('recordList');
+    schedule.forEach(s => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="rt-time">${fmt12(s.a)} – ${fmt12(s.l)}</span><span class="rt-place">${s.icon} ${s.name}</span>`;
+      li.addEventListener('click', () => {
+        setFollow(false);
+        map.flyTo([s.lat, s.lng], 16, { animate: true, duration: 1.2 });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      listEl.appendChild(li);
+    });
+    const rows = Array.from(listEl.children);
+
+    // ============ FOLLOW DAVE ============
+    let follow = true;
+    let suspendFollowUntil = 0;
+    const recenterBtn = document.getElementById('recenterBtn');
+
+    function setFollow(on) {
+      follow = on;
+      recenterBtn.classList.toggle('attention', !on);
+    }
+    map.on('dragstart', () => setFollow(false));
+    recenterBtn.addEventListener('click', () => {
+      setFollow(true);
+      suspendFollowUntil = Date.now() + 1500;
+      map.flyTo(marker.getLatLng(), START_ZOOM, { animate: true, duration: 1.4 });
+    });
+
+    // ============ UI UPDATES ============
+    const statusMain = document.getElementById('statusMain');
+    const statusSub = document.getElementById('statusSub');
+    const clockChip = document.getElementById('clockChip');
+    let lastIndex = -1, lastMode = '', lastUi = 0, lastLat = null, lastLng = null;
+
+    function updateUI(s, force) {
+      const now = Date.now();
+      if (now - lastUi > 250 || force) {
+        clockChip.textContent = fmt12(s.mins);
+        clockChip.style.visibility = introActive ? 'hidden' : 'visible';
+        lastUi = now;
+      }
+      if (s.index === lastIndex && s.mode === lastMode && !force) return;
+      lastIndex = s.index;
+      lastMode = s.mode;
+
+      statusMain.textContent = s.mode === 'stop'
+        ? `${s.place.icon} Dave is at ${shortName(s.place.name)}`
+        : `🚗 Dave is heading to ${shortName(s.place.name)}`;
+      statusSub.textContent = mode === 'fast'
+        ? `Fast-forward: a whole day passes in ${Math.round(1440 / FAST_SPEED)} minutes`
+        : 'Live: real time';
+
+      rows.forEach((li, i) => {
+        const isNow = s.mode === 'stop' && i === s.index;
+        li.classList.toggle('now', isNow);
+        li.classList.toggle('done', i < s.index || (s.mode === 'travel' && i === s.index));
+      });
+
+      Object.keys(placeEls).forEach(k => placeEls[k].classList.remove('here'));
+      if (s.mode === 'stop') {
+        const el = placeEls[placeKey(s.place)];
+        if (el) el.classList.add('here');
       }
     }
-  }
 
-  let active = null;
-  for (const seg of segments) {
-    if (currentMins >= seg.start && currentMins < seg.end) {
-      active = seg;
-      break;
+    // ============ MAIN LOOP (smooth, every frame) ============
+    function frame() {
+      const s = getState();
+
+      // The opening tour just ended: glide the map over to where the schedule has Dave
+      if (handoffPending) {
+        handoffPending = false;
+        if (follow) {
+          suspendFollowUntil = Date.now() + 1500;
+          map.flyTo([s.lat, s.lng], map.getZoom(), { animate: true, duration: 1.2 });
+        }
+      }
+
+      if (s.lat !== lastLat || s.lng !== lastLng) {
+        marker.setLatLng([s.lat, s.lng]);
+        if (follow && Date.now() > suspendFollowUntil) {
+          map.panTo([s.lat, s.lng], { animate: false });
+        }
+        lastLat = s.lat;
+        lastLng = s.lng;
+      }
+      updateUI(s, false);
+      requestAnimationFrame(frame);
     }
-  }
-  if (!active) active = segments[segments.length - 1] || segments[0];
+    updateUI(startState, true);
+    requestAnimationFrame(frame);
 
-  let lat, lng;
-  if (active.type === 'stop') {
-    lat = active.lat;
-    lng = active.lng;
-  } else {
-    const duration = active.end - active.start;
-    const elapsed = currentMins - active.start;
-    const t = Math.max(0, Math.min(1, elapsed / duration));
-    const routePos = interpolateAlongRoute(active.route, t);
-    if (routePos) {
-      [lat, lng] = routePos;
-    } else {
-      [lat, lng] = interpolate(active.lat1, active.lng1, active.lat2, active.lng2, t);
+    // Roads load in the background; until they arrive Dave moves in a straight line
+    loadRoutes();
+
+    // ============ ADMIN ============
+    // Stores a hash instead of the plain password. This only deters casual snooping;
+    // anything in client-side code can be bypassed by a determined person.
+    function hashStr(str, seed = 0) {
+      let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+      for (let i = 0; i < str.length; i++) {
+        const ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+      }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+      return 4294967296 * (2097151 & h2) + (h1 >>> 0);
     }
-  }
-  return { lat, lng };
-}
+    const ADMIN_HASH = 7813831874271010;
 
-const map = L.map('map', { 
-  zoomControl: false,
-  zoomAnimation: true,
-  markerZoomAnimation: true,
-  inertia: true,
-  inertiaDeceleration: 3000,
-  inertiaMaxSpeed: 1500
-}).setView([40.12, -74.18], 10);
+    document.getElementById('adminBtn').addEventListener('click', function () {
+      const pass = prompt("Password:");
+      if (pass === null) return;
+      if (hashStr(pass) !== ADMIN_HASH) { alert("Wrong password"); return; }
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap',
-  maxZoom: 18,
-  updateWhenIdle: false,
-  updateWhenZooming: false,
-  keepBuffer: 4
-}).addTo(map);
-
-const marker = L.marker([40.12, -74.18]).addTo(map);
-marker.bindPopup("Dave").openPopup();
-
-const bounds = [];
-schedule.forEach(stop => bounds.push([stop.lat, stop.lng]));
-if (bounds.length) map.fitBounds(bounds, { padding: [30, 30] });
-
-function update() {
-  const pos = getCurrentPosition();
-  marker.setLatLng([pos.lat, pos.lng]);
-  const clock = document.getElementById('timeClock');
-  if (clock && speedUp) {
-    const real = new Date();
-    const realStr = real.toLocaleTimeString();
-    const virtMins = getCurrentMinutes();
-    const vh = Math.floor(virtMins / 60) % 24;
-    const vm = Math.floor(virtMins % 60);
-    const virtStr = `\( {String(vh).padStart(2,'0')}: \){String(vm).padStart(2,'0')}`;
-    clock.innerHTML = `Real: ${realStr}<br>Website: ${virtStr}`;
-  }
-}
-
-document.getElementById('recenterBtn').addEventListener('click', function() {
-  const currentPos = marker.getLatLng();
-  map.flyTo(currentPos, 15, { animate: true, duration: 1.5 });
-});
-
-// Admin button
-document.body.insertAdjacentHTML('beforeend', '<button id="adminBtn" style="position:fixed; bottom:10px; right:10px; font-size:14px; opacity:0.7; background:#eee; border:1px solid #ccc; padding:4px 8px; border-radius:4px; cursor:pointer; color:#333; z-index:9999;">admin</button>');
-document.body.insertAdjacentHTML('beforeend', '<div id="timeClock" style="display:none; position:fixed; bottom:50px; right:10px; background:rgba(0,0,0,0.8); color:white; padding:8px 12px; border-radius:6px; font-size:13px; z-index:9999; font-family:monospace;"></div>');
-document.getElementById('adminBtn').addEventListener('click', function() {
-  const pass = prompt("Password:");
-  if (pass === "tRack.dave9") {
-    const on = confirm("Turn on 24-hour day in 24 minutes?");
-    const clock = document.getElementById('timeClock');
-    if (on) {
-      speedUp = true;
-      speedStartReal = Date.now();
-      speedStartVirtual = getCurrentMinutes();
-      clock.style.display = 'block';
-      alert("Speed mode ON");
-    } else {
-      speedUp = false;
-      clock.style.display = 'none';
-      alert("Speed mode OFF");
-    }
-  } else if (pass !== null) {
-    alert("Wrong password");
-  }
-});
-
-loadRoutes().then(() => {
-  update();
-  setInterval(update, 1000);
-});
+      introActive = false;   // admin choice overrides the opening tour
+      if (confirm("OK = real time\nCancel = fast-forward")) {
+        mode = 'live';
+        alert("Real time ON");
+      } else {
+        mode = 'fast';
+        anchorReal = Date.now();
+        anchorVirtual = nowInLakewood().minutes;
+        alert("Fast-forward ON");
+      }
+      updateUI(getState(), true);
+    });
   </script>
 </body>
 </html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0a0c0;
+            margin-bottom: 50px;
+        }
+        .buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 800px;
+            margin-bottom: 40px;
+        }
+        .button {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 18px 36px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            min-width: 220px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.4);
+            border-color: transparent;
+        }
+        .divider {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: #ff6b6b;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #ff6b6b, transparent);
+            margin: 0 15px;
+        }
+        .non-dave {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 900px;
+        }
+        footer {
+            margin-top: 60px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Portfolio</h1>
+    <p class="subtitle">A collection of my projects and sites</p>
+
+    <div class="buttons-container">
+        <a href="https://realyoutube0-rgb.github.io/Daveafterdarkv3/index.html" class="button" target="_blank">Dave After Dark</a>
+        <a href="https://realyoutube0-rgb.github.io/Dinewithdave-v4/#about" class="button" target="_blank">Book Dave</a>
+    </div>
+
+    <div class="divider">Non Dave Websites</div>
+
+    <div class="non-dave">
+        <a href="https://realyoutube0-rgb.github.io/Deal-or-no-deal-7-/" class="button" target="_blank">Deal or No Deal</a>
+        <a href="https://realyoutube0-rgb.github.io/Internet-court/" class="button" target="_blank">Internet Court</a>
+        <a href="https://realyoutube0-rgb.github.io/Am-I-cooked-/" class="button" target="_blank">Am I Cooked?</a>
+    </div>
+
+    <div class="divider">Videos</div>
+
+    <div class="buttons-container">
+        <!-- Upload your video files as video1.mp4, video2.mp4, video3.mp4 next to this HTML file (or put them in a "videos" folder and update the paths below) -->
+        <a href="Dave edit 1." class="button" target="_blank">Dave edit 1</a>
+        <a href="Dave edit 2." class="button" target="_blank">Dave edit 2</a>
+        <a href="Dave edit 3." class="button" target="_blank">Dave edit 3</a>
+    </div>
+
+  <footer> © Yechiel F.</footer>
+</body>
+</html>

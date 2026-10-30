@@ -20,14 +20,15 @@
       background: #1a73e8;
       color: white;
       text-align: center;
-      padding: 28px 16px 24px;
+      padding: 16px 16px 13px;
       position: sticky;
-top: 0;
-z-index: 2000;
+      top: 0;
+      z-index: 2000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
     header h1 {
       margin: 0;
-      font-size: clamp(2.6rem, 11vw, 4.5rem);
+      font-size: clamp(2.1rem, 9vw, 3.4rem);
       font-weight: 800;
       letter-spacing: -0.02em;
       line-height: 1.05;
@@ -53,6 +54,11 @@ z-index: 2000;
     #clockChip {
       font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums;
       background: #eef4ff; color: #1a73e8; padding: 6px 14px; border-radius: 10px;
+    }
+    #clockChip.countdown { font-size: 1rem; }
+    #speedBtn {
+      margin-top: 8px; background: #1a73e8; color: white; border: none;
+      padding: 7px 14px; border-radius: 16px; font-size: 0.9rem; font-weight: 700; cursor: pointer;
     }
 
     /* ---------- Map window ---------- */
@@ -129,7 +135,9 @@ z-index: 2000;
       background: #e53935; border: 3px solid white;
       display: flex; align-items: center; justify-content: center;
       font-size: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      overflow: hidden;
     }
+    .dave-dot img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .dave-tag {
       position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
       background: #e53935; color: white; font-size: 12px; font-weight: 800;
@@ -166,10 +174,91 @@ z-index: 2000;
       .rt-time { flex: none; }
     }
 
+    /* ---------- Admin button ---------- */
     #adminBtn {
-      position: fixed; bottom: 10px; right: 10px; z-index: 9999;
-      font-size: 14px; opacity: 0.6; background: #eee; color: #333;
-      border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px; cursor: pointer;
+      position: fixed; bottom: 10px; right: 10px; z-index: 9000;
+      font-size: 11px; opacity: 0.55; background: rgba(255,255,255,0.85); color: #333;
+      border: 1px solid #ccc; padding: 3px 8px; border-radius: 10px; cursor: pointer;
+    }
+
+    /* ---------- Admin: code entry box ---------- */
+    #adminLogin {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9500;
+      background: rgba(0, 0, 0, 0.85);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #adminLogin.show { display: flex; }
+    #adminLogin .box {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      background: #000;
+      color: #00ff00;
+      font-family: monospace;
+      border: 1px solid #00ff00;
+      padding: 1.2rem;
+    }
+    #adminLogin h2 { margin: 0 0 0.6rem; font-size: 1.2rem; color: #00ff00; font-family: monospace; }
+    #adminLogin p { margin: 0 0 1rem; color: #00ff00; }
+    #adminLoginClose {
+      position: absolute; top: 6px; right: 12px;
+      font-size: 1.6rem; line-height: 1; cursor: pointer; color: #00ff00;
+    }
+    #adminCodeInput {
+      width: 100%; background: #111; color: #00ff00; border: 1px solid #00ff00;
+      padding: 0.5rem; font-family: monospace; font-size: 16px; margin-bottom: 1rem;
+      outline: none;
+    }
+    #adminSubmit {
+      width: 100%; background: #00ff00; color: #000; border: none;
+      padding: 0.6rem; font-family: monospace; font-size: 1rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* ---------- Admin: hacker terminal ---------- */
+    #adminModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #000;
+      color: #00ff00;
+      font-family: monospace;
+      flex-direction: column;
+    }
+    #adminModal.show { display: flex; }
+    #codeOutput {
+      flex: 1;
+      margin: 0;
+      padding: 1rem;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+      line-height: 1.3;
+      box-sizing: border-box;
+    }
+    #promptLine {
+      display: none;
+      padding: 0.5rem 1rem 1rem 1rem;
+      background: #000;
+      align-items: center;
+    }
+    #promptLine.show { display: flex; }
+    #adminCommand {
+      background: transparent;
+      color: #00ff00;
+      border: none;
+      outline: none;
+      font-family: monospace;
+      font-size: 16px;
+      flex: 1;
+      min-width: 0;
+      caret-color: #00ff00;
+      padding: 0;
     }
   </style>
 </head>
@@ -183,6 +272,7 @@ z-index: 2000;
       <div>
         <div id="statusMain">Finding Dave...</div>
         <div id="statusSub"></div>
+        <button id="speedBtn" type="button">Switch to live</button>
       </div>
       <div id="clockChip">--:--</div>
     </section>
@@ -203,27 +293,48 @@ z-index: 2000;
     </section>
   </main>
 
-  <button id="adminBtn">admin</button>
+  <button id="adminBtn">© Yechiel F</button>
+
+  <!-- Admin: code entry -->
+  <div id="adminLogin">
+    <div class="box">
+      <span id="adminLoginClose">&times;</span>
+      <h2>ADMIN ACCESS</h2>
+      <p>Enter code:</p>
+      <input type="password" id="adminCodeInput" autocomplete="off">
+      <button type="button" id="adminSubmit">OK</button>
+    </div>
+  </div>
+
+  <!-- Admin: terminal -->
+  <div id="adminModal">
+    <pre id="codeOutput"></pre>
+    <div id="promptLine">
+      <span style="color:#00ff00; margin-right:0.3rem;">$</span>
+      <input type="text" id="adminCommand" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="enter" inputmode="text">
+    </div>
+  </div>
 
   <script>
     // ============ SETTINGS ============
-    const FAST_SPEED = 360;           // virtual minutes per real minute. 360 = a full day in 4 minutes
+    const DAVE_PHOTO = "dave.jpg";    // the picture used for Dave's icon. Change this if your file has a different name
+    const FAST_SPEED = 150;           // virtual minutes per real minute. 360 = a full day in 4 minutes
     const START_ZOOM = 15;            // higher = more zoomed in (neighborhood level)
 
-    // Opening tour: for the first minute or so Dave hops between places no matter the time
-    const INTRO_TRAVEL_SECONDS = 5;   // how long each drive takes
-    const INTRO_PAUSE_SECONDS = 1.5;  // how long he stays at each stop
+    // When the page opens, fast mode runs for this many seconds (Dave hops between places no matter the time).
+    // Then it switches to live (real time).
+    const FAST_START_SECONDS = 30;
     // The tour plays schedule drives 10 to 18 (home > cafe > Tartars > gym > lunch > bowling > Evergreen > house stop > Gourmet Glatt > dinner)
     const INTRO_FIRST_DRIVE = 10;
     const INTRO_LAST_DRIVE = 18;
 
     // ============ PLACES ============
     const places = {
-      home:        { name: "Home (121 Van Buren Ave)", icon: "🏠", lat: 40.0950, lng: -74.2495 },
-      tartars:     { name: "Tartars", icon: "🍴", lat: 40.0815, lng: -74.2115 },
+      home:        { name: "Home", icon: "🏠", lat: 40.0950, lng: -74.2495 },
+      tartars:     { name: "Tartars", icon: "🏫", lat: 40.0815, lng: -74.2115 },
       gym:         { name: "The Lakewood Gym", icon: "🏋️", lat: 40.1081, lng: -74.2212 },
       bowling:     { name: "Finigin Lanes", icon: "🎳", lat: 40.0760, lng: -74.1850 },
-      minyan:      { name: "Minyan (145 Ocean Ave)", icon: "🕍", lat: 40.0900, lng: -74.2000 },
+      minyan:      { name: "Minyan", icon: "🕍", lat: 40.0900, lng: -74.2000 },
       lake:        { name: "Lakewood Lake", icon: "🦆", lat: 40.089071, lng: -74.216998 },
       wawa:        { name: "Wawa", icon: "⛽", lat: 40.0833, lng: -74.2669 },
       seven11:     { name: "7-Eleven", icon: "🏪", lat: 40.0833, lng: -74.2158 },
@@ -242,10 +353,11 @@ z-index: 2000;
       j2South:     { name: "J2 Pizza South", icon: "🍕", lat: 40.0637, lng: -74.2197 },
       j2North:     { name: "J2 Pizza North", icon: "🍕", lat: 40.1081, lng: -74.2212 },
       hotBagels:   { name: "Hot bagels", icon: "🥯", lat: 40.0719, lng: -74.2171 },
-
+      
       evergreen:   { name: "Evergreen", icon: "🛒", lat: 40.0631, lng: -74.2184 },
       gourmetGlatt:{ name: "Gourmet Glatt", icon: "🛒", lat: 40.1084, lng: -74.2217 },
-      houseStop:   { name: "House stop", icon: "🏘️", lat: 40.0740, lng: -74.2155 }
+      houseStop:   { name: "Felders house", icon: "🏘️", lat: 40.0740, lng: -74.2155 }
+      
     };
 
     // ============ TIME HELPERS ============
@@ -380,7 +492,7 @@ z-index: 2000;
       return interpolateAlongRoute(from.route, t) || interpolate(from.lat, from.lng, to.lat, to.lng, t);
     }
 
-    // ============ CLOCK (fast-forward by default, real time via admin) ============
+    // ============ CLOCK (fast-forward or real time) ============
     let mode = 'fast';   // 'fast' or 'live'
     let anchorReal = Date.now();
     let anchorVirtual = today.minutes;
@@ -391,16 +503,16 @@ z-index: 2000;
       return (anchorVirtual + realElapsedMin * FAST_SPEED) % 1440;
     }
 
-    // ============ OPENING TOUR ============
+    // ============ FAST START (first 30 seconds) ============
     // Drives that actually go somewhere (skips hops where both places share a spot)
     const introDrives = [];
     for (let i = INTRO_FIRST_DRIVE; i <= INTRO_LAST_DRIVE; i++) {
       const a = schedule[i], b = schedule[i + 1];
       if (a.lat !== b.lat || a.lng !== b.lng) introDrives.push(i);
     }
-    const INTRO_HOP_MS = (INTRO_TRAVEL_SECONDS + INTRO_PAUSE_SECONDS) * 1000;
-    const INTRO_TRAVEL_MS = INTRO_TRAVEL_SECONDS * 1000;
-    const INTRO_TOTAL_MS = introDrives.length * INTRO_HOP_MS;
+    const INTRO_TOTAL_MS = FAST_START_SECONDS * 1000;
+    const INTRO_HOP_MS = INTRO_TOTAL_MS / Math.max(1, introDrives.length);
+    const INTRO_TRAVEL_MS = INTRO_HOP_MS * 0.75;
     const introStartReal = Date.now();
     let introActive = introDrives.length > 0;
     let handoffPending = false;
@@ -408,16 +520,15 @@ z-index: 2000;
     function endIntro() {
       if (!introActive) return;
       introActive = false;
-      // Back to the fast-forward schedule, continuing from the current time of day
-      anchorReal = Date.now();
-      anchorVirtual = nowInLakewood().minutes;
+      // After the fast start, switch to live (real time)
+      mode = 'live';
       handoffPending = true;
     }
 
     function getIntroState() {
       const elapsed = Date.now() - introStartReal;
       if (elapsed >= INTRO_TOTAL_MS) { endIntro(); return null; }
-      const hop = Math.floor(elapsed / INTRO_HOP_MS);
+      const hop = Math.min(introDrives.length - 1, Math.floor(elapsed / INTRO_HOP_MS));
       const within = elapsed - hop * INTRO_HOP_MS;
       const i = introDrives[hop];
       const from = schedule[i], to = schedule[i + 1];
@@ -537,10 +648,10 @@ z-index: 2000;
       });
     });
 
-    // ---- Dave ----
+    // ---- Dave (his photo; falls back to an emoji if the picture is missing) ----
     const daveIcon = L.divIcon({
       className: 'dave',
-      html: '<div class="dave-wrap"><div class="dave-pulse"></div><div class="dave-dot"><img src="dave.jpg" alt="Dave" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"></div><div class="dave-tag">Dave</div></div>',
+      html: `<div class="dave-wrap"><div class="dave-pulse"></div><div class="dave-dot"><img src="${DAVE_PHOTO}" alt="Dave" onerror="this.outerHTML='🧔'"></div><div class="dave-tag">Dave</div></div>`,
       iconSize: [46, 46],
       iconAnchor: [23, 23]
     });
@@ -583,13 +694,21 @@ z-index: 2000;
     const statusMain = document.getElementById('statusMain');
     const statusSub = document.getElementById('statusSub');
     const clockChip = document.getElementById('clockChip');
+    const speedBtn = document.getElementById('speedBtn');
     let lastIndex = -1, lastMode = '', lastUi = 0, lastLat = null, lastLng = null;
 
     function updateUI(s, force) {
       const now = Date.now();
       if (now - lastUi > 250 || force) {
-        clockChip.textContent = fmt12(s.mins);
-        clockChip.style.visibility = introActive ? 'hidden' : 'visible';
+        if (introActive) {
+          const left = Math.max(1, Math.ceil((introStartReal + INTRO_TOTAL_MS - now) / 1000));
+          clockChip.textContent = 'Fast mode on: ' + left;
+          clockChip.classList.add('countdown');
+        } else {
+          clockChip.textContent = fmt12(s.mins);
+          clockChip.classList.remove('countdown');
+        }
+        speedBtn.textContent = mode === 'fast' ? 'Switch to live' : 'Switch to fast';
         lastUi = now;
       }
       if (s.index === lastIndex && s.mode === lastMode && !force) return;
@@ -600,7 +719,7 @@ z-index: 2000;
         ? `${s.place.icon} Dave is at ${shortName(s.place.name)}`
         : `🚗 Dave is heading to ${shortName(s.place.name)}`;
       statusSub.textContent = mode === 'fast'
-        ? `Fast-forward: a whole day passes in ${Math.round(1440 / FAST_SPEED)} minutes`
+        ? `Fast-forward: 24 hours go by in ${Math.round(1440 / FAST_SPEED)} minutes`
         : 'Live: real time';
 
       rows.forEach((li, i) => {
@@ -616,13 +735,27 @@ z-index: 2000;
       }
     }
 
+    // ============ FAST / LIVE SWITCH ============
+    function setSpeedMode(newMode) {
+      introActive = false;
+      mode = newMode;
+      if (newMode === 'fast') {
+        anchorReal = Date.now();
+        anchorVirtual = nowInLakewood().minutes;
+      }
+      handoffPending = true;
+      updateUI(getState(), true);
+    }
+    speedBtn.addEventListener('click', () => setSpeedMode(mode === 'fast' ? 'live' : 'fast'));
+
     // ============ MAIN LOOP (smooth, every frame) ============
     function frame() {
       const s = getState();
 
-      // The opening tour just ended: glide the map over to where the schedule has Dave
+      // Fast start ended or the mode was switched: glide the map over to where Dave is
       if (handoffPending) {
         handoffPending = false;
+        updateUI(s, true);
         if (follow) {
           suspendFollowUntil = Date.now() + 1500;
           map.flyTo([s.lat, s.lng], map.getZoom(), { animate: true, duration: 1.2 });
@@ -646,9 +779,19 @@ z-index: 2000;
     // Roads load in the background; until they arrive Dave moves in a straight line
     loadRoutes();
 
-    // ============ ADMIN ============
-    // Stores a hash instead of the plain password. This only deters casual snooping;
-    // anything in client-side code can be bypassed by a determined person.
+    // ============ ADMIN (hacker terminal) ============
+    const adminBtn = document.getElementById('adminBtn');
+    const adminLogin = document.getElementById('adminLogin');
+    const adminCodeInput = document.getElementById('adminCodeInput');
+    const adminSubmit = document.getElementById('adminSubmit');
+    const adminLoginClose = document.getElementById('adminLoginClose');
+    const adminModal = document.getElementById('adminModal');
+    const codeOutput = document.getElementById('codeOutput');
+    const promptLine = document.getElementById('promptLine');
+    const adminCommand = document.getElementById('adminCommand');
+
+    // The code is stored as a scrambled number, not as plain text.
+    // This only deters casual snooping; anything in a web page can be bypassed by a determined person.
     function hashStr(str, seed = 0) {
       let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
       for (let i = 0; i < str.length; i++) {
@@ -660,24 +803,184 @@ z-index: 2000;
       h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
       return 4294967296 * (2097151 & h2) + (h1 >>> 0);
     }
-    const ADMIN_HASH = 7813831874271010;
+    const ADMIN_HASH = 1464573194215860;
 
-    document.getElementById('adminBtn').addEventListener('click', function () {
-      const pass = prompt("Password:");
-      if (pass === null) return;
-      if (hashStr(pass) !== ADMIN_HASH) { alert("Wrong password"); return; }
-
-      introActive = false;   // admin choice overrides the opening tour
-      if (confirm("OK = real time\nCancel = fast-forward")) {
-        mode = 'live';
-        alert("Real time ON");
-      } else {
-        mode = 'fast';
-        anchorReal = Date.now();
-        anchorVirtual = nowInLakewood().minutes;
-        alert("Fast-forward ON");
+    // ---- The scrolling fake hacking text ----
+    // To use your own fake text, replace everything after "const fakeCode =" with your own string.
+    const fakeCode = (function () {
+      const verbs = ['Injecting', 'Decrypting', 'Bypassing', 'Scanning', 'Mounting', 'Patching', 'Spoofing', 'Tracing', 'Rerouting', 'Compiling'];
+      const things = ['kernel module', 'proxy tunnel', 'gps relay', 'packet buffer', 'session token', 'firewall rule', 'dns cache', 'satellite uplink', 'cell tower table', 'memory block'];
+      const hex = n => Array.from({ length: n }, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join(' ');
+      let out = '';
+      for (let n = 0; n < 700; n++) {
+        const r = n % 5;
+        if (r === 0) out += '[ OK ] ' + verbs[n % verbs.length] + ' ' + things[(n * 7) % things.length] + ' ... 0x' + (0x3f0000 + n * 97).toString(16) + '\n';
+        else if (r === 1) out += '0x' + (0xa4f200 + n * 16).toString(16) + ': ' + hex(12) + '\n';
+        else if (r === 2) out += 'function sync_' + n + '(a, b) { return (a ^ b) << ' + (n % 7) + '; }\n';
+        else if (r === 3) out += 'packet ' + (1000 + n) + ' -> 10.0.' + (n % 255) + '.' + ((n * 3) % 255) + ' [' + hex(4) + ']\n';
+        else out += 'ACCESS NODE ' + (n % 64) + ' ........ granted\n';
       }
-      updateUI(getState(), true);
+      return out;
+    })();
+
+    // ---- Typing helpers ----
+    let typingTimer = null;
+
+    function appendOut(text) {
+      codeOutput.textContent += text;
+      if (codeOutput.textContent.length > 30000) {
+        codeOutput.textContent = codeOutput.textContent.slice(-20000);
+      }
+      codeOutput.scrollTop = codeOutput.scrollHeight;
+    }
+
+    // Types the fake code for a random time, then calls "done"
+    function typeFake(minMs, maxMs, startAtZero, done) {
+      const duration = Math.random() * (maxMs - minMs) + minMs;
+      const start = Date.now();
+      let i = startAtZero ? 0 : Math.floor(Math.random() * Math.max(1, fakeCode.length - 8000));
+      clearInterval(typingTimer);
+      typingTimer = setInterval(() => {
+        if (Date.now() - start > duration || i >= fakeCode.length) {
+          clearInterval(typingTimer);
+          appendOut("\n");
+          if (done) done();
+          return;
+        }
+        appendOut(fakeCode.slice(i, i + 4));
+        i += 4;
+      }, 4);
+    }
+
+    // ---- Open and close ----
+    function openAdminLogin() {
+      adminLogin.classList.add('show');
+      adminCodeInput.value = "";
+      adminCodeInput.focus();
+    }
+
+    function showPrompt() {
+      promptLine.classList.add('show');
+      adminCommand.value = "";
+      setTimeout(() => {
+        adminCommand.focus();
+        adjustForKeyboard();
+      }, 50);
+    }
+
+    function hidePrompt() {
+      promptLine.classList.remove('show');
+    }
+
+    function exitAdmin() {
+      clearInterval(typingTimer);
+      adminModal.classList.remove('show');
+      adminLogin.classList.remove('show');
+      document.body.style.overflow = '';
+      adminModal.style.height = '';
+      adminModal.style.top = '';
+      adminModal.style.bottom = '';
+      hidePrompt();
+    }
+
+    // Keeps the typing line visible when the phone keyboard pops up
+    function adjustForKeyboard() {
+      if (!window.visualViewport || !adminModal.classList.contains('show')) return;
+      const vv = window.visualViewport;
+      adminModal.style.height = vv.height + 'px';
+      adminModal.style.top = vv.offsetTop + 'px';
+      adminModal.style.bottom = 'auto';
+      setTimeout(() => { codeOutput.scrollTop = codeOutput.scrollHeight; }, 50);
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', adjustForKeyboard);
+      window.visualViewport.addEventListener('scroll', adjustForKeyboard);
+    }
+
+    adminBtn.addEventListener('click', openAdminLogin);
+    adminLoginClose.addEventListener('click', () => adminLogin.classList.remove('show'));
+    adminModal.addEventListener('click', () => {
+      if (promptLine.classList.contains('show')) adminCommand.focus();
+    });
+
+    // ---- Code check ----
+    function submitCode() {
+      if (hashStr(adminCodeInput.value) === ADMIN_HASH) {
+        adminLogin.classList.remove('show');
+        adminModal.classList.add('show');
+        codeOutput.textContent = "";
+        hidePrompt();
+        document.body.style.overflow = 'hidden';
+        typeFake(5000, 15000, true, () => {
+          appendOut("ACCESS GRANTED. Type help for commands.\n");
+          showPrompt();
+        });
+      } else {
+        alert("Access denied");
+        adminCodeInput.value = "";
+      }
+    }
+    adminSubmit.addEventListener('click', submitCode);
+    adminCodeInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); submitCode(); }
+    });
+
+    // ---- Commands ----
+    function say(cmd, reply) {
+      appendOut("\n$ " + cmd + "\n" + reply + "\n");
+      showPrompt();
+    }
+
+    adminCommand.addEventListener('keydown', function (e) {
+      if (!(e.key === 'Enter' || e.key === 'Go' || e.key === 'Next' || e.key === 'Done' || e.keyCode === 13)) return;
+      e.preventDefault();
+      const cmd = this.value.trim();
+      this.value = "";
+      hidePrompt();
+      const low = cmd.toLowerCase();
+
+      if (low === 'exit') { exitAdmin(); return; }
+
+      if (cmd === 'iLOveDave') { say(cmd, "what can I do for you master"); return; }
+
+      if (low === 'help') {
+        say(cmd, "fast   - fast-forward mode (a whole day in 4 minutes)\nslow   - normal speed (real time)\nlive   - same as slow\nwhere  - where Dave is right now\nexit   - close admin");
+        return;
+      }
+
+      if (low === 'fast') {
+        setSpeedMode('fast');
+        say(cmd, "Fast-forward ON");
+        return;
+      }
+
+      if (low === 'slow' || low === 'live') {
+        setSpeedMode('live');
+        say(cmd, "Normal speed (real time) ON");
+        return;
+      }
+
+      if (low === 'where') {
+        const s = getState();
+        say(cmd, (s.mode === 'stop' ? "Dave is at " : "Dave is heading to ") + s.place.name + " (" + fmt12(s.mins) + ")");
+        return;
+      }
+
+      if (low === 'smell.dave') {
+        appendOut("\n$ " + cmd + "\nLoading...\n");
+        setTimeout(() => { window.location.href = "https://realyoutube0-rgb.github.io/Daveafterdarkv3/index.html"; }, 400);
+        return;
+      }
+
+      if (low === 'book.dave') {
+        appendOut("\n$ " + cmd + "\nLoading...\n");
+        setTimeout(() => { window.location.href = "https://realyoutube0-rgb.github.io/Dinewithdave-v4/#about"; }, 400);
+        return;
+      }
+
+      // Anything else: pretend to hack for a few seconds
+      appendOut("\n$ " + cmd + "\n");
+      typeFake(500, 5000, false, showPrompt);
     });
   </script>
 </body>

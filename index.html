@@ -676,8 +676,17 @@
       iconSize: [46, 46],
       iconAnchor: [23, 23]
     });
-    const marker = L.marker([startState.lat, startState.lng], { icon: daveIcon, zIndexOffset: 1000, interactive: false }).addTo(map);
-
+        const marker = L.marker([startState.lat, startState.lng], { icon: daveIcon, zIndexOffset: 1000 }).addTo(map);
+        let storyTaps = 0, storyLastTap = 0;
+    marker.on('click', () => {
+      const now = Date.now();
+      storyTaps = (now - storyLastTap < 1500) ? storyTaps + 1 : 1;   // each tap must come within 1.5 seconds of the last
+      storyLastTap = now;
+      if (storyTaps >= 3) {
+        storyTaps = 0;
+        window.location.href = "story.html";
+      }
+    });
     // ============ TRACK RECORD LIST (below the map) ============
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     document.getElementById('recordSub').textContent = dayNames[today.day] + ". Tap a row to see the spot on the map.";

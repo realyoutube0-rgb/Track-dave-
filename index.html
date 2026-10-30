@@ -56,6 +56,21 @@
       background: #eef4ff; color: #1a73e8; padding: 6px 14px; border-radius: 10px;
     }
     #clockChip.countdown { font-size: 1rem; }
+        /* ---------- Secret video ---------- */
+    #recenterBtn { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+    #videoOverlay {
+      display: none; position: fixed; inset: 0; z-index: 9800;
+      background: #000; align-items: center; justify-content: center;
+    }
+    #videoOverlay.show { display: flex; }
+    #secretVideo { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    #videoClose {
+      position: absolute; top: 12px; right: 14px; z-index: 2;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(0,0,0,0.6); color: white; font-size: 26px; line-height: 1;
+      border: 1px solid rgba(255,255,255,0.5); cursor: pointer;
+    }
+    
     #speedBtn {
       margin-top: 8px; background: #1a73e8; color: white; border: none;
       padding: 7px 14px; border-radius: 16px; font-size: 0.9rem; font-weight: 700; cursor: pointer;
@@ -294,6 +309,11 @@
   </main>
 
   <button id="adminBtn">© Yechiel F</button>
+    <!-- Secret video -->
+  <div id="videoOverlay">
+    <button id="videoClose" type="button" aria-label="Close">&times;</button>
+    <video id="secretVideo" playsinline controls preload="none"></video>
+  </div>
 
   <!-- Admin: code entry -->
   <div id="adminLogin">
@@ -320,6 +340,7 @@
     const DAVE_PHOTO = "dave.jpg";    // the picture used for Dave's icon. Change this if your file has a different name
     const FAST_SPEED = 150;           // virtual minutes per real minute. 360 = a full day in 4 minutes
     const START_ZOOM = 15;            // higher = more zoomed in (neighborhood level)
+        const SECRET_VIDEO = "video.mp4";  // the video that plays after the secret tap pattern
 
     // When the page opens, fast mode runs for this many seconds (Dave hops between places no matter the time).
     // Then it switches to live (real time).
@@ -691,6 +712,59 @@
     });
 
     // ============ UI UPDATES ============
+        // ============ SECRET: tap, tap, tap, hold 2 seconds, tap on "Dave's here" plays a video ============
+    const SECRET_STEPS = ['tap', 'tap', 'tap', 'tap', 'tap', 'tap', 'tap'];
+    const SECRET_TAP_MAX_MS = 600;     // a press shorter than this counts as a tap
+    const SECRET_HOLD_MIN_MS = 2000;   // a press at least this long counts as the hold
+    const SECRET_GAP_MS = 3000;        // start over if you wait longer than this between presses
+    let secretStep = 0, secretPressStart = 0, secretLastRelease = 0;
+
+    const videoOverlay = document.getElementById('videoOverlay');
+    const secretVideo = document.getElementById('secretVideo');
+    const videoClose = document.getElementById('videoClose');
+
+    function openSecretVideo() {
+      videoOverlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      secretVideo.src = SECRET_VIDEO;
+      const p = secretVideo.play();
+      if (p && p.catch) p.catch(() => {});   // if the phone blocks autoplay, tap play on the video
+    }
+    function closeSecretVideo() {
+      secretVideo.pause();
+      secretVideo.removeAttribute('src');
+      secretVideo.load();
+      videoOverlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+    videoClose.addEventListener('click', closeSecretVideo);
+    secretVideo.addEventListener('ended', closeSecretVideo);
+    secretVideo.addEventListener('error', () => {
+      if (secretVideo.getAttribute('src')) { alert('Video file not found: ' + SECRET_VIDEO); closeSecretVideo(); }
+    });
+
+    recenterBtn.addEventListener('pointerdown', () => {
+      const now = Date.now();
+      if (now - secretLastRelease > SECRET_GAP_MS) secretStep = 0;
+      secretPressStart = now;
+    });
+    recenterBtn.addEventListener('pointerup', () => {
+      const now = Date.now();
+      const held = now - secretPressStart;
+      secretLastRelease = now;
+      const kind = held >= SECRET_HOLD_MIN_MS ? 'hold' : (held <= SECRET_TAP_MAX_MS ? 'tap' : 'other');
+      if (kind === SECRET_STEPS[secretStep]) {
+        secretStep++;
+      } else {
+        secretStep = (kind === 'tap') ? 1 : 0;   // a stray tap can be the start of a new try
+      }
+      if (secretStep === SECRET_STEPS.length) {
+        secretStep = 0;
+        openSecretVideo();
+      }
+    });
+    recenterBtn.addEventListener('pointercancel', () => { secretStep = 0; });
+    recenterBtn.addEventListener('contextmenu', e => e.preventDefault());
     const statusMain = document.getElementById('statusMain');
     const statusSub = document.getElementById('statusSub');
     const clockChip = document.getElementById('clockChip');
